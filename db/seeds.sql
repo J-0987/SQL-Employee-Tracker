@@ -9,6 +9,9 @@ INSERT INTO department (name) VALUES
 ('Operations');
 
 INSERT INTO role (title, salary, department_id) VALUES
+
+
+
 ('Manager', 100000, 1),
 ('Sales Lead', 75000, 2),
 ('Salesperson', 50000, 3),

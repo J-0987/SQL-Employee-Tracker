@@ -2,19 +2,27 @@ const inquirer = require('inquirer');
 const fs = require('fs');
 const pg = require('pg');
 const { Pool } = require('pg');
+const { Console } = require('console');
 
 const pool = new Pool({
-  user: 'postgres',
-  host: 'localhost',
-  database: 'employee_db',
-  password: 't@lkingduck',
-  port: 5432,
+    user: 'postgres',
+    host: 'localhost',
+    database: 'employee_db',
+    password: 't@lkingduck',
+    port: 5432,
 });
 
-
+pool.connect()
+    .then(() => console.log('Connected to the employee_db database!'))
+    .catch(err => console.error('Error connecting to database', err));
 const PORT = process.env.PORT || 3001;
+
+// * Define functions to perform the following actions:
+
+
 // WHEN I choose to add an employee THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
-function addEmployee() {
+ function addEmployee() {
+    console.log(allEmployees())
     inquirer
         .prompt([
             {
@@ -33,16 +41,19 @@ function addEmployee() {
                 message: 'Enter the employee role:',
                 choices: ['Management', 'Sales', 'Engineering', 'Finance', 'Marketing', 'Human Resources', 'IT', 'Operations'],
             },
+            // ? I added the name of each employee to the manager list assuming that it would be from one of them. Does this have to be the case? Because if not, adding a new name would cause null values, as that name would have to be created as an employee first.
             {
                 type: 'list',
                 name: 'manager',
                 message: 'Enter the employee\'s manager:',
-                choices: ['Doe,John', 'Smith,Jane',  'Williams,Alice','Brown,Steve', 'Johnston,Michael', 'Davis,Emily',  'Miller,David', 'Anderson,Sarah'],
+                choices: ['John, Doe', 'Jane, Smith', 'Alice, Williams', 'Steve, Brown', 'Michael, Johnson', 'Emily, Davis', 'David, Miller', 'Sarah, Anderson'],
             },
         ])
         .then((answers) => {
             const { firstName, lastName, role, manager } = answers;
             // Implement logic to add the employee to the database
+            // ? How do i break apart the manager input to get the first and last name and assign it an id that corresponds with its employee id?
+
             pool.query(
                 'INSERT INTO employee (first_name, last_name, role, manager) VALUES ($1, $2, $3, $4)',
                 [firstName, lastName, role, manager],
@@ -59,13 +70,18 @@ function addEmployee() {
             console.log('An error occurred:', error);
         });
 };
-function addDepartment() { 
+
+
+
+// WHEN I choose to add a department THEN I am prompted to enter the name of the department and that department is added to the database 
+// * Works
+function addDepartment() {
     inquirer
         .prompt([
             {
                 type: 'input',
                 name: 'name',
-                message: 'Enter the department name:',
+                message: 'Enter the department name. Ensure it is not one of our existing departments (Management, Sales, Engineering, Finance, Marketing, Human Resources,IT,Operations):',
             },
         ])
         .then((answers) => {
@@ -88,6 +104,7 @@ function addDepartment() {
         });
 };
 //WHEN I choose to add a role THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
+// ? The same question as addEmployee. How do I break apart the department input to get the name and assign it an id that corresponds with its department id?
 function addRole() {
     inquirer
         .prompt([
@@ -102,17 +119,18 @@ function addRole() {
                 message: 'Enter the role salary:',
             },
             {
-                type: 'input',
+                type: 'list',
                 name: 'department',
-                message: 'Enter the department for this role:',
+                message: 'Choose the department for this role:',
+                choices: ['Management', 'Sales', 'Engineering', 'Finance', 'Marketing', 'Human Resources'],
             },
         ])
         .then((answers) => {
-            const { title, salary } = answers;
+            const { title, salary, department } = answers;
             // Implement logic to add the role to the database
             pool.query(
-                'INSERT INTO role (title, salary) VALUES ($1, $2)',
-                [title, salary],
+                'INSERT INTO role (title, salary) VALUES ($1, $2, $3)',
+                [title, salary, department],
                 (error, result) => {
                     if (error) {
                         console.log('An error occurred:', error);
@@ -125,8 +143,8 @@ function addRole() {
         .catch((error) => {
             console.log('An error occurred:', error);
         });
- };
- // WHEN I choose to update an employee role THEN I am prompted to select an employee to update and their new role and this information is updated in the databas
+};
+// WHEN I choose to update an employee role THEN I am prompted to select an employee to update and their new role and this information is updated in the databas
 function updateEmployee() {
     inquirer
         .prompt([
@@ -136,9 +154,19 @@ function updateEmployee() {
                 message: 'Enter the ID of the employee you want to update:',
             },
             {
-                type: 'input',
+                type: 'list',
                 name: 'newRole',
-                message: 'Enter the new role for the employee:',
+                message: 'Select the new role for the employee:',
+                choices: [
+                    'Manager',
+                    'Sales Lead',
+                    'Salesperson',
+                    'Lead Engineer',
+                    'Marketing Manager',
+                    'HR Specialist',
+                    'IT Analyst',
+                    'Operations Manager'
+                ],
             },
         ])
         .then((answers) => {
@@ -229,7 +257,7 @@ inquirer
                 break;
             case 'View All Departments':
                 // Implement logic to view departments
-                pool.query('SELECT * FROM department', (error, result) => {
+                pool.query('SELECT department.id, department.name FROM department', (error, result) => {
                     if (error) {
                         console.log('An error occurred:', error);
                     } else {
@@ -243,7 +271,7 @@ inquirer
                 addEmployee();
                 break;
 
-                case 'Add Department':
+            case 'Add Department':
                 // Implement logic to add a department
                 addDepartment();
                 break;
