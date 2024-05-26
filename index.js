@@ -60,18 +60,35 @@ const deptList = allDepts.rows.map ( (d)=> ({
             },
         ])
         .then((answers) => {
-            const { firstName, lastName, role, manager_id } = answers;
-            // Implement logic to add the employee to the database
-            // ? How do i break apart the manager input to get the first and last name and assign it an id that corresponds with its employee id?
-
+            const { firstName, lastName, role_id, manager } = answers;
+        
+            // Split the manager's name into first and last name
+            const [managerFirstName, managerLastName] = manager.split(', ');
+        
+            // Look up the manager's ID
             pool.query(
-                'INSERT INTO employee (first_name, last_name, role, manager) VALUES ($1, $2, $3, $4)',
-                [firstName, lastName, role, manager],
+                'SELECT id FROM employee WHERE first_name = $1 AND last_name = $2',
+                [managerFirstName, managerLastName],
                 (error, result) => {
                     if (error) {
                         console.log('An error occurred:', error);
+                    } else if (result.rows.length > 0) {
+                        const manager_id = result.rows[0].id;
+        
+                        // Insert the new employee
+                        pool.query(
+                            'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)',
+                            [firstName, lastName, role_id, manager_id],
+                            (error, result) => {
+                                if (error) {
+                                    console.log('An error occurred:', error);
+                                } else {
+                                    console.log('Employee added successfully');
+                                }
+                            }
+                        );
                     } else {
-                        console.log('Employee added successfully');
+                        console.log('Manager not found');
                     }
                 }
             );
@@ -79,7 +96,29 @@ const deptList = allDepts.rows.map ( (d)=> ({
         .catch((error) => {
             console.log('An error occurred:', error);
         });
-};
+
+    };
+//         .then((answers) => {
+//             const { firstName, lastName, role_id, manager_id } = answers;
+//             // Implement logic to add the employee to the database
+//             // ? How do i break apart the manager input to get the first and last name and assign it an id that corresponds with its employee id?
+
+//             pool.query(
+//                 'INSERT INTO employee (first_name, last_name, role_id, manager_id) VALUES ($1, $2, $3, $4)',
+//                 [firstName, lastName, role_id, manager_id],
+//                 (error, result) => {
+//                     if (error) {
+//                         console.log('An error occurred:', error);
+//                     } else {
+//                         console.log('Employee added successfully');
+//                     }
+//                 }
+//             );
+//         })
+//         .catch((error) => {
+//             console.log('An error occurred:', error);
+//         });
+// };
 
 
 
@@ -116,6 +155,8 @@ function addDepartment() {
 //WHEN I choose to add a role THEN I am prompted to enter the name, salary, and department for the role and that role is added to the database
 // ? The same question as addEmployee. How do I break apart the department input to get the name and assign it an id that corresponds with its department id?
 function addRole() {
+
+    
     inquirer
         .prompt([
             {
@@ -132,7 +173,8 @@ function addRole() {
                 type: 'list',
                 name: 'department',
                 message: 'Choose the department for this role:',
-                choices: ['Management', 'Sales', 'Engineering', 'Finance', 'Marketing', 'Human Resources'],
+                choices: res.map(
+                    (department) => department.department_name),
             },
         ])
         .then((answers) => {
@@ -227,6 +269,39 @@ function deleteEmployee() {
         });
 }
 
+function viewAllEmployees() {
+    pool.query('Select employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name", role.title as "Title", role.salary as "Salary", department.name as "Department" from employee join role on employee.role_id = role.id join department on role.department_id = department.id', (error, result) => {
+        if (error) {
+            console.log('An error occurred:', error);
+        } else {
+            console.log('List of employees:');
+            console.table(result.rows);
+        }
+      
+    });
+}
+
+function viewAllRoles (){
+    pool.query('SELECT role.title AS "Role" FROM role', (error, result) => {
+        if (error) {
+            console.log('An error occurred:', error);
+        } else {
+            console.log('List of roles:');
+            console.table(result.rows);
+        }
+    });
+}
+
+async function viewAllDepts() {
+    try {
+        const result = await pool.query('SELECT * FROM department');
+        console.log('List of departments:');
+        console.table(result.rows);
+    } catch (error) {
+        console.log('An error occurred:', error);
+    }
+
+}
 
 // Initialize the application
 
@@ -240,69 +315,55 @@ inquirer
             type: 'list',
             name: 'menu',
             message: 'Please select an option:',
-            choices: ['View All Employees', 'View All Departments', 'View All Roles', 'Add Department', 'Add Employee', 'Update Employee', 'Delete Employee'],
+            choices: ['View All Employees', 'View All Departments', 'Add Role', 'View All Roles', 'Add Department', 'Add Employee', 'Update Employee', 'Delete Employee'],
         },
     ])
     .then((answers) => {
         // Based on the user's choice, perform the corresponding action
         switch (answers.menu) {
             case 'View All Employees':
-                // Implement logic to view entire employee database
-                pool.query('Select employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name", role.title as "Title", role.salary as "Salary", department.name as "Department" from employee join role on employee.role_id = role.id join department on role.department_id = department.id', (error, result) => {
-                    if (error) {
-                        console.log('An error occurred:', error);
-                    } else {
-                        console.log('List of employees:');
-                        console.table(result.rows);
-                    }
-                    .then(mainMenu)
-                });
-                break;
+            // Implement logic to view entire employee database
+              viewAllEmployees();
+            break;
 
             case 'View All Roles':
-                // Implement logic to view roles
-                pool.query('SELECT role.title AS "Role" FROM role', (error, result) => {
-                    if (error) {
-                        console.log('An error occurred:', error);
-                    } else {
-                        console.log('List of roles:');
-                        console.table(result.rows);
-                    }
-                });
-                break;
+            // Implement logic to view roles
+            viewAllRoles();
+            break;
+
+            case 'Add Role':
+            // Implement logic to view roles
+            addRole();
+
+            break;
             case 'View All Departments':
-                // Implement logic to view departments
-                pool.query('SELECT * FROM department', (error, result) => {
-                    if (error) {
-                        console.log('An error occurred:', error);
-                    } else {
-                        console.log('List of departments:');
-                        console.table(result.rows);
-                    }
-                });
-                break;
+            // Implement logic to view departments
+            viewAllDepts();
+            break;
             case 'Add Employee':
-                // Implement logic to add an employee
-                addEmployee();
-                break;
+            // Implement logic to add an employee
+            addEmployee();
+            break;
 
             case 'Add Department':
-                // Implement logic to add a department
-                addDepartment();
-                break;
+            // Implement logic to add a department
+            addDepartment();
+            break;
 
             case 'Update Employee Role':
-                // Implement logic to update an employee
-                updateEmployee();
-                break;
+            // Implement logic to update an employee
+            updateEmployee();
+            break;
             case 'Add Role':
-                // Implement logic to add a role
-                addRole();
-                break;
+            // Implement logic to add a role
+            addRole();
+            break;
             case 'Delete Employee':
-                // Implement logic to delete an employee
-                deleteEmployee();
-                break;
+            // Implement logic to delete an employee
+            deleteEmployee();
+            break;
+                case 'Exit':
+                pool.end();
             default:
                 console.log('Invalid option');
         }
