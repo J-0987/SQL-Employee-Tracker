@@ -22,7 +22,16 @@ const PORT = process.env.PORT || 3001;
 
 // WHEN I choose to add an employee THEN I am prompted to enter the employee’s first name, last name, role, and manager, and that employee is added to the database
  function addEmployee() {
-    console.log(allEmployees())
+const allDepartments = async ()=> {
+ allDepts = await pool.query('select id, name from department')
+console.log(allDepts.rows);
+const deptList = allDepts.rows.map ( (d)=> ({
+   name: d.name,
+   value: d.id,
+}))
+
+ return deptList;
+ }
     inquirer
         .prompt([
             {
@@ -39,18 +48,19 @@ const PORT = process.env.PORT || 3001;
                 type: 'list',
                 name: 'role',
                 message: 'Enter the employee role:',
-                choices: ['Management', 'Sales', 'Engineering', 'Finance', 'Marketing', 'Human Resources', 'IT', 'Operations'],
+                choices: allDepartments,
+                // ['Management', 'Sales', 'Engineering', 'Finance', 'Marketing', 'Human Resources', 'IT', 'Operations'],
             },
-            // ? I added the name of each employee to the manager list assuming that it would be from one of them. Does this have to be the case? Because if not, adding a new name would cause null values, as that name would have to be created as an employee first.
+        
             {
                 type: 'list',
-                name: 'manager',
+                name: 'manager_id',
                 message: 'Enter the employee\'s manager:',
                 choices: ['John, Doe', 'Jane, Smith', 'Alice, Williams', 'Steve, Brown', 'Michael, Johnson', 'Emily, Davis', 'David, Miller', 'Sarah, Anderson'],
             },
         ])
         .then((answers) => {
-            const { firstName, lastName, role, manager } = answers;
+            const { firstName, lastName, role, manager_id } = answers;
             // Implement logic to add the employee to the database
             // ? How do i break apart the manager input to get the first and last name and assign it an id that corresponds with its employee id?
 
@@ -220,6 +230,10 @@ function deleteEmployee() {
 
 // Initialize the application
 
+function mainMenu (){
+
+
+
 inquirer
     .prompt([
         {
@@ -241,6 +255,7 @@ inquirer
                         console.log('List of employees:');
                         console.table(result.rows);
                     }
+                    .then(mainMenu)
                 });
                 break;
 
@@ -257,12 +272,12 @@ inquirer
                 break;
             case 'View All Departments':
                 // Implement logic to view departments
-                pool.query('SELECT department.id, department.name FROM department', (error, result) => {
+                pool.query('SELECT * FROM department', (error, result) => {
                     if (error) {
                         console.log('An error occurred:', error);
                     } else {
                         console.log('List of departments:');
-                        console.table(result.rows.map(department => ({ Name: department.name })));
+                        console.table(result.rows);
                     }
                 });
                 break;
@@ -295,3 +310,6 @@ inquirer
     .catch((error) => {
         console.log('An error occurred:', error);
     });
+}
+
+mainMenu()
