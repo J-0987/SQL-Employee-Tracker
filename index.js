@@ -156,20 +156,29 @@ function updateEmployee() {
         });
 }
 function deleteEmployee() {
+    pool.query("SELECT * FROM EMPLOYEE", function (err, data) {
+        if (err) throw err;
+        // console.log(data)
+        const employeeList = data.rows.map(employee => ({
+            value: employee.id,
+            name: employee.name
+        }))
+    
     inquirer
         .prompt([
             {
-                type: 'input',
-                name: 'employeeId',
+                type: 'list',
+                name: 'employee',
                 message: 'Enter the ID of the employee you want to delete:',
+                choices: employeeList
             },
         ])
         .then((answers) => {
-            const { employeeId } = answers;
+            const { employee } = answers;
             // Implement logic to delete the employee from the database
             pool.query(
                 'DELETE FROM employee WHERE id = $1',
-                [employeeId],
+                [employee],
                 (error, result) => {
                     if (error) {
                         console.log('An error occurred:', error);
@@ -184,6 +193,7 @@ function deleteEmployee() {
             console.log('An error occurred:', error);
         });
 }
+    )}
 
 function viewAllEmployees() {
     pool.query('Select employee.id, employee.first_name AS "First Name", employee.last_name AS "Last Name", role.title as "Title", role.salary as "Salary", manager_id as "Manager ID", department.name as "Department" from employee join role on employee.role_id = role.id join department on role.department_id = department.id', (error, result) => {
