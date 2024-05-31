@@ -4,12 +4,18 @@ This project is an employee management system built with Node.js, Inquirer, and 
 
 ## Table of Contents
 - [Features](#features)
+- [Demo](#Demo)
 - [Usage](#usage)
 - [Installation](#installation)
 - [License](#license)
 - [Contributing](#contributing)
 - [Tests](#tests)
 - [Questions](#questions)
+
+## Demo
+
+Here is a short walkthrough video of how the app works: https://drive.google.com/file/d/1LN2yKUxAXRfh5T8NpSX2VgsSk3NDcXt-/view
+
 
 ## Features
 
@@ -18,6 +24,7 @@ This project is an employee management system built with Node.js, Inquirer, and 
 - **Delete Records:** Users can delete employees, roles, and departments from the company.
 
 ## Usage
+
 
 
 Setup the Database for this project
