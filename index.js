@@ -315,7 +315,7 @@ function mainMenu() {
                 type: 'list',
                 name: 'menu',
                 message: 'Please select an option:',
-                choices: ['View All Employees', 'View All Departments', 'View All Roles', 'Add Role', 'Add Department', 'Add Employee', 'Update Employee', 'Delete Employee', 'Exit'],
+                choices: ['View All Employees', 'View All Departments', 'View All Roles', 'Add Role', 'Add Department', 'Add Employee', 'Exit'],
             },
         ])
         .then((answers) => {
@@ -348,17 +348,17 @@ function mainMenu() {
                     addDepartment();
                     break;
 
-                case 'Update Employee Role':
-                    // Implement logic to update an employee
-                    updateEmployee();
-                    break;
+                // case 'Update Employee Role':
+                //     // Implement logic to update an employee
+                //     updateEmployee();
+                //     break;
                 case 'Add Role':
                     // Implement logic to add a role
                     addRole();
                     break;
-                case 'Delete Employee':
-                    // Implement logic to delete an employee
-                    deleteEmployee();
+                // case 'Delete Employee':
+                //     // Implement logic to delete an employee
+                //     deleteEmployee();
                     break;
                 case 'Exit':
                     pool.end();
